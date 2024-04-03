@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Bookings</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="mt-5">Your Bookings</h1>
+        <div id="bookingsTable" class="mt-4"></div>
+    </div>
+
+    <!-- Bootstrap JS (optional, if you need it) -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+
+
+        // Fetch bookings from the API
+        fetch('http://localhost:5017/api/Booking')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch bookings.');
+                }
+                return response.json();
+            })
+            .then(bookings => {
+                // Build the HTML table
+                const table = document.createElement('table');
+                table.className = 'table table-striped mt-4';
+                const thead = table.createTHead();
+                const headerRow = thead.insertRow();
+                const headers = ['Booking ID', 'Number of Seats', 'Route ID', 'Booking Time', 'Actions'];
+                headers.forEach(headerText => {
+                    const th = document.createElement('th');
+                    th.textContent = headerText;
+                    headerRow.appendChild(th);
+                });
+
+                const tbody = table.createTBody();
+                bookings.forEach(booking => {
+                    const row = tbody.insertRow();
+                    const cells = ['bookingId', 'numOfSeats', 'routeId', 'bookingTime'];
+                    cells.forEach(cell => {
+                        const cellData = document.createTextNode(booking[cell]);
+                        const td = document.createElement('td');
+                        td.appendChild(cellData);
+                        row.appendChild(td);
+                    });
+
+                    // Add delete button
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.className = 'btn btn-danger';
+                    deleteButton.onclick = function () {
+                        deleteBooking(booking.bookingId);
+                    };
+                    const tdActions = document.createElement('td');
+                    tdActions.appendChild(deleteButton);
+                    row.appendChild(tdActions);
+                });
+
+                // Append the table to the container div
+                document.getElementById('bookingsTable').appendChild(table);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+        // Function to delete a booking
+        function deleteBooking(bookingId) {
+            fetch(`http://localhost:5017/api/Booking/${bookingId}`, {
+                method: 'DELETE'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to delete booking.');
+                    }
+                    // Reload the page to reflect changes
+                    location.reload();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+</body>
+
+</html>
